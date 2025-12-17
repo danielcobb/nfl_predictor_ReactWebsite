@@ -1,12 +1,10 @@
-interface Props {
-  children: string;
-}
-const Header = ({ children }: Props) => {
+const Header = () => {
   return (
     <>
-      <header>
-        <h1 className="title"> {children} </h1>
-      </header>
+      <div className="logo-badge">
+        <span className="logo-nfl">NFL</span>
+        <span className="logo-title">Game Predictor</span>
+      </div>
     </>
   );
 };

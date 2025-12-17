@@ -63,3 +63,99 @@ select.form-select.game-select option {
   color: #e6e6e6;
 }
 
+/* Logo badge container */
+.logo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  background-color: rgba(255, 255, 255, 0.12); /* lighter than before */
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+
+  border-left: 4px solid #7fd1b9;
+
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* Small "NFL" prefix */
+.logo-nfl {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  color: #7fd1b9; /* subtle cool accent */
+}
+
+/* Main title */
+.logo-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.team-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.team-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+}
+
+.team-abbr {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.matchup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+}
+
+.team-side {
+  display: flex;
+  align-items: center;
+  min-width: 70px; /* keeps teams aligned */
+}
+
+.team-side.away {
+  justify-content: flex-end;
+}
+
+.team-side.home {
+  justify-content: flex-start;
+}
+
+.at-symbol {
+  opacity: 0.6;
+  font-weight: 600;
+  width: 16px;
+  text-align: center;
+}
+
+.matchup-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* Indent metadata to line up under team abbreviations */
+.predicted-winner {
+  padding-left: 28px; /* logo width + gap */
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+.predicted-winner span {
+  font-weight: 600;
+}
