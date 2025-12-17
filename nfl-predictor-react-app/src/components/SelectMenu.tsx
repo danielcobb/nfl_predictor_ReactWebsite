@@ -1,8 +1,12 @@
 const SelectMenu = () => {
   return (
-    <>
-      <select className="form-select" aria-label="Default select example">
-        <option selected>Select NFL Week</option>
+    <div className="game-control-container">
+      <select
+        className="form-select game-select"
+        aria-label="Default select example"
+        defaultValue=""
+      >
+        <option>Select NFL Week</option>
         <option value="1">Week 1</option>
         <option value="2">Week 2</option>
         <option value="3">Week 3</option>
@@ -21,7 +25,7 @@ const SelectMenu = () => {
         <option value="16">Week 16</option>
         <option value="17">Week 17</option>
       </select>
-    </>
+    </div>
   );
 };
 export default SelectMenu;

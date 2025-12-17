@@ -1,6 +1,6 @@
 const GameList = () => {
   return (
-    <>
+    <div className="game-list-container">
       <ul className="list-group">
         <li className="list-group-item">Game 1</li>
         <li className="list-group-item">Game 2</li>
@@ -19,7 +19,7 @@ const GameList = () => {
         <li className="list-group-item">Game 15</li>
         <li className="list-group-item">Game 16</li>
       </ul>
-    </>
+    </div>
   );
 };
 

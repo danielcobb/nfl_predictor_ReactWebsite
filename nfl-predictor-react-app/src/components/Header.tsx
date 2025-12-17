@@ -1,9 +1,14 @@
-
 interface Props {
   children: string;
 }
 const Header = ({ children }: Props) => {
-  return <h1 className="header">{children}</h1>;
+  return (
+    <>
+      <header>
+        <h1 className="title"> {children} </h1>
+      </header>
+    </>
+  );
 };
 
 export default Header;
