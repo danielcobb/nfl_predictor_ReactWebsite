@@ -22,3 +22,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual envs
+.venv/
+venv/
+
+# Env files / secrets
+.env
+.env.*
+*.pem
+*.key
+secrets*.json
+credentials*.json
+
+# OS
+.DS_Store
