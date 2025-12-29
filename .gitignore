@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+python_files/__pycache__/app.cpython-313.pyc
+*.pyc
+*.pyc
