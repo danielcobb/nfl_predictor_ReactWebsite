@@ -5,7 +5,7 @@ import GameList from "./components/GameList";
 import "bootstrap/dist/css/bootstrap.min.css";
 import type { GamePrediction, PredictionsResponse } from "./types.tsx";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://nfl-predictor-reactwebsite.onrender.com";
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
