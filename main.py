@@ -1,6 +1,8 @@
 import pandas as pd
 import nflreadpy as nfl
 import numpy as np
+import joblib
+from pathlib import Path
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
@@ -200,6 +202,25 @@ def make_predictions(models, X, games):
 # Public API entrypoint
 # -----------------------------
 
+_CACHE_DIR = Path(__file__).resolve().parent / "python_files" / "model_cache"
+
+
+def _cache_path(season: int, week: int) -> Path:
+    return _CACHE_DIR / f"models_{season}_week_{week}.joblib"
+
+
+def _load_cached_bundle(season: int, week: int):
+    path = _cache_path(season, week)
+    if path.exists():
+        return joblib.load(path)
+    return None
+
+
+def _save_cached_bundle(season: int, week: int, bundle: dict) -> None:
+    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    joblib.dump(bundle, _cache_path(season, week))
+
+
 def predict_week(week: int, season: int = 2025) -> list[dict]:
     seasons = [season - 2, season - 1, season]
     team_stats = get_team_stats(seasons)
@@ -224,16 +245,28 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
     if predict_games.empty or train_games.empty:
         return []
 
-    features = [c for c in train_games.columns if c not in
-                ["game_id", "season", "week", "home_team", "away_team", "result", "game_date"]]
+    cached = _load_cached_bundle(season, week)
+    if cached:
+        features = cached["features"]
+        scaler = cached["scaler"]
+        models = cached["models"]
+    else:
+        features = [c for c in train_games.columns if c not in
+                    ["game_id", "season", "week", "home_team", "away_team", "result", "game_date"]]
 
-    scaler = StandardScaler()
-    X_train = scaler.fit_transform(train_games[features].fillna(0))
-    y_train = train_games["result"]
+        scaler = StandardScaler()
+        X_train = scaler.fit_transform(train_games[features].fillna(0))
+        y_train = train_games["result"]
 
-    models = train_models(X_train, y_train)
+        models = train_models(X_train, y_train)
 
-    X_pred = scaler.transform(predict_games[features].fillna(0))
+        _save_cached_bundle(season, week, {
+            "features": features,
+            "scaler": scaler,
+            "models": models,
+        })
+
+    X_pred = scaler.transform(predict_games.reindex(columns=features, fill_value=0).fillna(0))
 
     return make_predictions(models, X_pred, predict_games)
 
