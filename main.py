@@ -70,6 +70,24 @@ def build_rolling_features(team_stats: pd.DataFrame, window: int = 4) -> pd.Data
     return pd.concat(rolling_stats, ignore_index=True)
 
 
+def _latest_team_stats(team_stats: pd.DataFrame, team: str, season: int, week: int) -> pd.DataFrame:
+    current = team_stats[
+        (team_stats["team"] == team) &
+        (team_stats["season"] == season) &
+        (team_stats["week"] < week)
+    ].tail(1)
+
+    if not current.empty:
+        return current
+
+    previous = team_stats[
+        (team_stats["team"] == team) &
+        (team_stats["season"] < season)
+    ].sort_values(["season", "week"]).tail(1)
+
+    return previous
+
+
 def create_game_features(schedule: pd.DataFrame, team_stats: pd.DataFrame) -> pd.DataFrame:
     games = []
 
@@ -79,17 +97,12 @@ def create_game_features(schedule: pd.DataFrame, team_stats: pd.DataFrame) -> pd
         else:
             result = 1 if game["home_score"] > game["away_score"] else 0
 
-        home_stats = team_stats[
-            (team_stats["team"] == game["home_team"]) &
-            (team_stats["season"] == game["season"]) &
-            (team_stats["week"] < game["week"])
-        ].tail(1)
-
-        away_stats = team_stats[
-            (team_stats["team"] == game["away_team"]) &
-            (team_stats["season"] == game["season"]) &
-            (team_stats["week"] < game["week"])
-        ].tail(1)
+        home_stats = _latest_team_stats(
+            team_stats, game["home_team"], int(game["season"]), int(game["week"])
+        )
+        away_stats = _latest_team_stats(
+            team_stats, game["away_team"], int(game["season"]), int(game["week"])
+        )
 
         if home_stats.empty or away_stats.empty:
             continue
@@ -188,10 +201,11 @@ def make_predictions(models, X, games):
 # -----------------------------
 
 def predict_week(week: int, season: int = 2025) -> list[dict]:
-    team_stats = get_team_stats([2023, 2024, 2025])
+    seasons = [season - 2, season - 1, season]
+    team_stats = get_team_stats(seasons)
 
     schedules = pd.concat(
-        [get_schedule(y) for y in [2023, 2024, 2025]],
+        [get_schedule(y) for y in seasons],
         ignore_index=True
     )
 
@@ -229,7 +243,7 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 # -----------------------------
 
 if __name__ == "__main__":
-    results = predict_week(16)
+    results = predict_week(1)
     for g in results:
         print(f"{g['away_team']} @ {g['home_team']} → {g['predicted_winner']} "
               f"({g['home_win_probability']:.1%}, conf {g['confidence']:.1%})")
