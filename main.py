@@ -2,6 +2,8 @@ import pandas as pd
 import nflreadpy as nfl
 import numpy as np
 import joblib
+import sqlite3
+import json
 from pathlib import Path
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -203,6 +205,7 @@ def make_predictions(models, X, games):
 # -----------------------------
 
 _CACHE_DIR = Path(__file__).resolve().parent / "python_files" / "model_cache"
+_DB_PATH = Path(__file__).resolve().parent / "python_files" / "predictions.sqlite"
 
 
 def _cache_path(season: int, week: int) -> Path:
@@ -221,7 +224,57 @@ def _save_cached_bundle(season: int, week: int, bundle: dict) -> None:
     joblib.dump(bundle, _cache_path(season, week))
 
 
+def _ensure_db() -> None:
+    _DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with sqlite3.connect(_DB_PATH) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS predictions (
+                season INTEGER NOT NULL,
+                week INTEGER NOT NULL,
+                created_at TEXT NOT NULL,
+                data TEXT NOT NULL,
+                PRIMARY KEY (season, week)
+            )
+            """
+        )
+        conn.commit()
+
+
+def _load_predictions_from_db(season: int, week: int) -> list[dict] | None:
+    _ensure_db()
+    with sqlite3.connect(_DB_PATH) as conn:
+        row = conn.execute(
+            "SELECT data FROM predictions WHERE season = ? AND week = ?",
+            (season, week),
+        ).fetchone()
+    if not row:
+        return None
+    return json.loads(row[0])
+
+
+def _save_predictions_to_db(season: int, week: int, predictions: list[dict]) -> None:
+    _ensure_db()
+    payload = json.dumps(predictions)
+    with sqlite3.connect(_DB_PATH) as conn:
+        conn.execute(
+            """
+            INSERT INTO predictions (season, week, created_at, data)
+            VALUES (?, ?, datetime('now'), ?)
+            ON CONFLICT(season, week) DO UPDATE SET
+                created_at = excluded.created_at,
+                data = excluded.data
+            """,
+            (season, week, payload),
+        )
+        conn.commit()
+
+
 def predict_week(week: int, season: int = 2025) -> list[dict]:
+    cached_predictions = _load_predictions_from_db(season, week)
+    if cached_predictions:
+        return cached_predictions
+
     seasons = [season - 2, season - 1, season]
     team_stats = get_team_stats(seasons)
 
@@ -268,7 +321,9 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 
     X_pred = scaler.transform(predict_games.reindex(columns=features, fill_value=0).fillna(0))
 
-    return make_predictions(models, X_pred, predict_games)
+    predictions = make_predictions(models, X_pred, predict_games)
+    _save_predictions_to_db(season, week, predictions)
+    return predictions
 
 
 # -----------------------------
