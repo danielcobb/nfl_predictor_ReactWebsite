@@ -9,6 +9,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Vite default
         "http://127.0.0.1:5173",
+        "https://danielcobb.github.io"
     ],
     allow_credentials=True,
     allow_methods=["*"],
