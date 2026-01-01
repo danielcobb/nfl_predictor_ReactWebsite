@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from main import predict_week
+from backend.main import predict_week
 
 app = FastAPI(title="NFL Game Predictor API")
 
