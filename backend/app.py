@@ -31,6 +31,8 @@ def get_predictions(week: int = Query(..., ge=1, le=18, description="NFL week (1
     predictions = []
     for row in raw_predictions:
         home_prob = row.get("home_win_prob")
+        if home_prob is not None:
+            home_prob = float(home_prob)
         if home_prob is None:
             confidence = None
         else:
