@@ -1,8 +1,11 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from backend.main import predict_week
+from pathlib import Path
+from backend.main import load_predictions
 
 app = FastAPI(title="NFL Game Predictor API")
+
+DB_PATH = str(Path(__file__).resolve().parent / "predictions.db")
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +27,7 @@ def get_predictions(week: int = Query(..., ge=1, le=18, description="NFL week (1
     Return predictions for a selected NFL week
     """
 
-    predictions = predict_week(week=week, season=season)
+    predictions = load_predictions(DB_PATH, season=season, week=week)
 
     if not predictions:
         raise HTTPException(status_code=404, detail=f"No predictions available for week {week}, season {season}")

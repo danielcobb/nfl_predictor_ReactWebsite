@@ -1,8 +1,13 @@
+from __future__ import annotations
 import pandas as pd
 import nflreadpy as nfl
 import numpy as np
 import joblib
 from pathlib import Path
+import sqlite3
+from datetime import datetime, timezone
+import os
+from typing import Iterable, Dict, Any, Optional
 
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
@@ -196,14 +201,120 @@ def make_predictions(models, X, games):
 
     return preds
 
+def ensure_db(db_path: str) -> None:
+    """Create the database file + predictions table if they don't exist."""
+    dir_path = os.path.dirname(db_path)
+    if dir_path:
+        os.makedirs(dir_path, exist_ok=True)
 
+    with sqlite3.connect(db_path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")  # better concurrent reads/writes
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS predictions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                season INTEGER NOT NULL,
+                week INTEGER NOT NULL,
+                game_id TEXT NOT NULL,
+
+                home_team TEXT NOT NULL,
+                away_team TEXT NOT NULL,
+
+                predicted_winner TEXT NOT NULL,
+
+                home_win_prob REAL,
+                away_win_prob REAL,
+
+                model_name TEXT,
+                created_at TEXT NOT NULL,
+
+                UNIQUE(season, week, game_id)
+            );
+        """)
+        conn.commit()
+
+def save_predictions(
+    db_path: str,
+    season: int,
+    week: int,
+    preds: Iterable[Dict[str, Any]],
+    model_name: Optional[str] = None,
+) -> int:
+    """
+    Save predictions to SQLite. Uses UPSERT so re-running the same week updates rows.
+    
+    preds: iterable of dicts like:
+      {
+        "game_id": "2025_03_DET_GB",  # or any stable unique id
+        "home_team": "DET",
+        "away_team": "GB",
+        "predicted_winner": "DET",
+        "home_win_prob": 0.62,        # optional
+        "away_win_prob": 0.38,        # optional
+      }
+    """
+    ensure_db(db_path)
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    rows = []
+    for p in preds:
+        home_p = p.get("home_win_probability")  # your actual key
+        away_p = None if home_p is None else (1.0 - float(home_p))
+
+        rows.append((
+            int(p.get("season", season)),
+            int(p.get("week", week)),
+            str(p["game_id"]),
+            str(p["home_team"]),
+            str(p["away_team"]),
+            str(p["predicted_winner"]),
+            None if home_p is None else float(home_p),
+            away_p,
+            model_name or p.get("model_name"),
+            now,
+    ))
+
+
+    sql = """
+        INSERT INTO predictions (
+            season, week, game_id,
+            home_team, away_team,
+            predicted_winner,
+            home_win_prob, away_win_prob,
+            model_name, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(season, week, game_id) DO UPDATE SET
+            home_team=excluded.home_team,
+            away_team=excluded.away_team,
+            predicted_winner=excluded.predicted_winner,
+            home_win_prob=excluded.home_win_prob,
+            away_win_prob=excluded.away_win_prob,
+            model_name=excluded.model_name,
+            created_at=excluded.created_at;
+    """
+
+    with sqlite3.connect(db_path) as conn:
+        cur = conn.cursor()
+        cur.executemany(sql, rows)
+        conn.commit()
+        return cur.rowcount  # number of inserted/updated rows
+
+def load_predictions(db_path: str, season: int, week: int) -> list[dict]:
+    """Read predictions back for a given season/week."""
+    with sqlite3.connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM predictions WHERE season=? AND week=? ORDER BY game_id;",
+            (season, week),
+        ).fetchall()
+        return [dict(r) for r in rows]
 
 # -----------------------------
 # Public API entrypoint
 # -----------------------------
 
-_CACHE_DIR = Path(__file__).resolve().parent / "python_files" / "model_cache"
-
+_CACHE_DIR = Path(__file__).resolve().parent / "model_cache"
 
 def _cache_path(season: int, week: int) -> Path:
     return _CACHE_DIR / f"models_{season}_week_{week}.joblib"
@@ -276,7 +387,11 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 # -----------------------------
 
 if __name__ == "__main__":
-    results = predict_week(1)
+    results = predict_week(2)
+    save_predictions("predictions.db", 2025, 2, results, "V1")
+    """
     for g in results:
         print(f"{g['away_team']} @ {g['home_team']} → {g['predicted_winner']} "
               f"({g['home_win_probability']:.1%}, conf {g['confidence']:.1%})")
+    """
+    print(results[0]["game_id"])
