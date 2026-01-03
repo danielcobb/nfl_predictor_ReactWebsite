@@ -38,7 +38,7 @@ export default function GameList({ games }: GameListProps) {
                 {/* Right side: probabilities */}
                 <div className="text-end">
                   <div className="fw-semibold pct">
-                    {(g.home_win_probability * 100).toFixed(1)}%
+                    {(g.home_win_prob * 100).toFixed(1)}%
                   </div>
                   <div className="small opacity-75">
                     Conf: {(g.confidence * 100).toFixed(1)}%
