@@ -5,8 +5,7 @@ export type GamePrediction = {
   home_team: string;
   away_team: string;
   predicted_winner: string;
-  home_win_probability: number; // 0..1
-  game_date: string | null;
+  home_win_prob: number; // 0..1
   confidence: number; // 0..1
 };
 
