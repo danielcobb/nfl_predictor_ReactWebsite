@@ -223,6 +223,7 @@ def ensure_db(db_path: str) -> None:
 
                 home_win_prob REAL,
                 away_win_prob REAL,
+                confidence REAL,
 
                 model_name TEXT,
                 created_at TEXT NOT NULL,
@@ -230,6 +231,11 @@ def ensure_db(db_path: str) -> None:
                 UNIQUE(season, week, game_id)
             );
         """)
+        cols = {
+            row[1] for row in conn.execute("PRAGMA table_info(predictions);").fetchall()
+        }
+        if "confidence" not in cols:
+            conn.execute("ALTER TABLE predictions ADD COLUMN confidence REAL;")
         conn.commit()
 
 def save_predictions(
@@ -270,6 +276,7 @@ def save_predictions(
             str(p["predicted_winner"]),
             None if home_p is None else float(home_p),
             away_p,
+            p.get("confidence"),
             model_name or p.get("model_name"),
             now,
     ))
@@ -280,16 +287,17 @@ def save_predictions(
             season, week, game_id,
             home_team, away_team,
             predicted_winner,
-            home_win_prob, away_win_prob,
+            home_win_prob, away_win_prob, confidence,
             model_name, created_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(season, week, game_id) DO UPDATE SET
             home_team=excluded.home_team,
             away_team=excluded.away_team,
             predicted_winner=excluded.predicted_winner,
             home_win_prob=excluded.home_win_prob,
             away_win_prob=excluded.away_win_prob,
+            confidence=excluded.confidence,
             model_name=excluded.model_name,
             created_at=excluded.created_at;
     """
@@ -387,11 +395,12 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 # -----------------------------
 
 if __name__ == "__main__":
-    results = predict_week(2)
-    save_predictions("predictions.db", 2025, 2, results, "V1")
+    for i in range(1,19):
+        results = predict_week(i)
+        save_predictions("predictions.db", 2025, i, results, "V1")
+        print(results[0]["game_id"])
     """
     for g in results:
         print(f"{g['away_team']} @ {g['home_team']} → {g['predicted_winner']} "
               f"({g['home_win_probability']:.1%}, conf {g['confidence']:.1%})")
     """
-    print(results[0]["game_id"])

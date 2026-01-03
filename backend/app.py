@@ -27,7 +27,24 @@ def get_predictions(week: int = Query(..., ge=1, le=18, description="NFL week (1
     Return predictions for a selected NFL week
     """
 
-    predictions = load_predictions(DB_PATH, season=season, week=week)
+    raw_predictions = load_predictions(DB_PATH, season=season, week=week)
+    predictions = []
+    for row in raw_predictions:
+        home_prob = row.get("home_win_prob")
+        if home_prob is None:
+            confidence = None
+        else:
+            confidence = abs(float(home_prob) - 0.5) * 2
+        predictions.append({
+            "game_id": row.get("game_id"),
+            "season": row.get("season"),
+            "week": row.get("week"),
+            "home_team": row.get("home_team"),
+            "away_team": row.get("away_team"),
+            "predicted_winner": row.get("predicted_winner"),
+            "home_win_prob": home_prob,
+            "confidence": confidence,
+        })
 
     if not predictions:
         raise HTTPException(status_code=404, detail=f"No predictions available for week {week}, season {season}")
