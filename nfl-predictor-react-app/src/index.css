@@ -159,3 +159,131 @@ select.form-select.game-select option {
 .predicted-winner span {
   font-weight: 600;
 }
+
+/* Game date */
+.game-date {
+  padding-left: 28px;
+  font-size: 0.78rem;
+  opacity: 0.5;
+  margin-top: 0.1rem;
+}
+
+/* Selectors row: season + week side by side */
+.selectors-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.selectors-row .game-select {
+  flex: 1;
+}
+
+/* Sort toggle button */
+.sort-toggle-container {
+  margin-bottom: 0.75rem;
+}
+
+.sort-toggle-btn {
+  background-color: #1c1c1f;
+  color: #a0a0a3;
+  border: 1px solid #2a2a2d;
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.sort-toggle-btn:hover {
+  border-color: #7fd1b9;
+  color: #e6e6e6;
+}
+
+.sort-toggle-btn.active {
+  border-color: #7fd1b9;
+  color: #7fd1b9;
+}
+
+/* Confidence badge */
+.conf-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.conf-high {
+  background-color: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.conf-med {
+  background-color: rgba(250, 204, 21, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.conf-low {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* Win probability bar */
+.prob-bar-wrapper {
+  margin-top: 0.65rem;
+}
+
+.prob-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
+}
+
+.prob-bar {
+  display: flex;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: #2a2a2d;
+}
+
+.prob-bar-away {
+  background-color: #3a3a3d;
+  transition: width 0.3s ease;
+}
+
+.prob-bar-home {
+  background-color: #7fd1b9;
+  transition: width 0.3s ease;
+}
+
+/* Skeleton loading cards */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton-line {
+  border-radius: 0.35rem;
+  background: linear-gradient(
+    90deg,
+    #2a2a2d 25%,
+    #353538 50%,
+    #2a2a2d 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  display: block;
+}
