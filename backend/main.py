@@ -395,7 +395,7 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 # -----------------------------
 
 if __name__ == "__main__":
-    for i in range(1,19):
+    for i in range(1,21):
         results = predict_week(i)
         save_predictions("predictions.db", 2025, i, results, "V1")
         print(results[0]["game_id"])
