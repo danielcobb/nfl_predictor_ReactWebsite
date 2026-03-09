@@ -236,6 +236,8 @@ def ensure_db(db_path: str) -> None:
         }
         if "confidence" not in cols:
             conn.execute("ALTER TABLE predictions ADD COLUMN confidence REAL;")
+        if "actual_winner" not in cols:
+            conn.execute("ALTER TABLE predictions ADD COLUMN actual_winner TEXT;")
         conn.commit()
 
 def save_predictions(
