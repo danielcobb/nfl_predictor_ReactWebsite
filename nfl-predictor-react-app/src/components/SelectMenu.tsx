@@ -1,5 +1,12 @@
 const SEASONS = [2022, 2023, 2024, 2025];
 
+const PLAYOFF_ROUNDS = [
+  { week: 19, label: "Wild Card" },
+  { week: 20, label: "Divisional Round" },
+  { week: 21, label: "Conference Championships" },
+  { week: 22, label: "Super Bowl" },
+];
+
 type SelectMenuProps = {
   value: number | null;
   onChange: (week: number | null) => void;
@@ -42,11 +49,22 @@ export default function SelectMenu({
             <option value="" disabled>
               Select Week
             </option>
-            {Array.from({ length: 18 }, (_, i) => i + 1).map((w) => (
-              <option key={w} value={w}>
-                Week {w}
-              </option>
-            ))}
+
+            <optgroup label="Regular Season">
+              {Array.from({ length: 18 }, (_, i) => i + 1).map((w) => (
+                <option key={w} value={w}>
+                  Week {w}
+                </option>
+              ))}
+            </optgroup>
+
+            <optgroup label="Playoffs">
+              {PLAYOFF_ROUNDS.map(({ week, label }) => (
+                <option key={week} value={week}>
+                  {label}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>

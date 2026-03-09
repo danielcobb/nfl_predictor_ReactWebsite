@@ -11,6 +11,7 @@ export default function App() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<number>(2025);
   const [games, setGames] = useState<GamePrediction[]>([]);
+  const [roundName, setRoundName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [sortByConf, setSortByConf] = useState(false);
@@ -36,8 +37,10 @@ export default function App() {
 
         const data = (await res.json()) as PredictionsResponse;
         setGames(data.predictions);
+        setRoundName(data.round_name ?? null);
       } catch (e) {
         setGames([]);
+        setRoundName(null);
         setError(
           e instanceof Error ? e.message : "Failed to load predictions."
         );
@@ -53,6 +56,8 @@ export default function App() {
     ? [...games].sort((a, b) => b.confidence - a.confidence)
     : games;
 
+  const isPlayoff = selectedWeek !== null && selectedWeek >= 19;
+
   return (
     <div className="app-wrapper">
       <Header />
@@ -67,8 +72,18 @@ export default function App() {
       {error && <div className="error-banner">{error}</div>}
 
       {games.length > 0 && (
-        <div className="sort-control">
-          <span className="sort-label">Sort</span>
+        <div className="results-header">
+          {isPlayoff && roundName ? (
+            <div className="playoff-round-label">
+              <span className="playoff-badge">PLAYOFFS</span>
+              <span className="playoff-round-name">{roundName}</span>
+            </div>
+          ) : (
+            <div className="results-week-label">
+              Week {selectedWeek} · {selectedSeason} Season
+            </div>
+          )}
+
           <button
             className={`sort-btn${sortByConf ? " active" : ""}`}
             onClick={() => setSortByConf((v) => !v)}

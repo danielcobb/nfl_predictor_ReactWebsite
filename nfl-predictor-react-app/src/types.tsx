@@ -13,6 +13,7 @@ export type GamePrediction = {
 export type PredictionsResponse = {
   season: number;
   week: number;
+  round_name?: string | null;
   num_games: number;
   predictions: GamePrediction[];
 };
