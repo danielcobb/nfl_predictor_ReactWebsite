@@ -20,11 +20,19 @@ app.add_middleware(
 )
 
 
+PLAYOFF_ROUND_NAMES = {
+    19: "Wild Card",
+    20: "Divisional Round",
+    21: "Conference Championships",
+    22: "Super Bowl",
+}
+
 @app.get('/predictions')
-def get_predictions(week: int = Query(..., ge=1, le=18, description="NFL week (1-18)"), 
+def get_predictions(week: int = Query(..., ge=1, le=22, description="NFL week (1-22; 19-22 are playoff rounds)"),
                     season: int = Query(2025, description="NFL season year")):
     """
-    Return predictions for a selected NFL week
+    Return predictions for a selected NFL week or playoff round.
+    Weeks 19-22 correspond to Wild Card, Divisional, Conference Championships, and Super Bowl.
     """
 
     raw_predictions = load_predictions(DB_PATH, season=season, week=week)
@@ -49,11 +57,15 @@ def get_predictions(week: int = Query(..., ge=1, le=18, description="NFL week (1
         })
 
     if not predictions:
-        raise HTTPException(status_code=404, detail=f"No predictions available for week {week}, season {season}")
-    
+        round_name = PLAYOFF_ROUND_NAMES.get(week, f"Week {week}")
+        raise HTTPException(status_code=404, detail=f"No predictions available for {round_name}, season {season}")
+
+    round_name = PLAYOFF_ROUND_NAMES.get(week)
+
     return {
-        "season" : season,
-        "week" : week,
-        "num_games" : len(predictions),
-        "predictions" : predictions,
+        "season": season,
+        "week": week,
+        "round_name": round_name,
+        "num_games": len(predictions),
+        "predictions": predictions,
     }
