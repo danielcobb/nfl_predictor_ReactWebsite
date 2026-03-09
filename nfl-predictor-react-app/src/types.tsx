@@ -7,6 +7,7 @@ export type GamePrediction = {
   predicted_winner: string;
   home_win_prob: number; // 0..1
   confidence: number; // 0..1
+  game_date?: string;
 };
 
 export type PredictionsResponse = {

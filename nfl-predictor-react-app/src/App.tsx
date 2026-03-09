@@ -9,9 +9,11 @@ const API_BASE = "https://nfl-predictor-reactwebsite.onrender.com";
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
+  const [selectedSeason, setSelectedSeason] = useState<number>(2025);
   const [games, setGames] = useState<GamePrediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [sortByConf, setSortByConf] = useState(false);
 
   useEffect(() => {
     if (selectedWeek === null) return;
@@ -22,11 +24,10 @@ export default function App() {
 
       try {
         const res = await fetch(
-          `${API_BASE}/predictions?week=${selectedWeek}&season=2025`
+          `${API_BASE}/predictions?week=${selectedWeek}&season=${selectedSeason}`
         );
 
         if (!res.ok) {
-          // FastAPI usually returns { detail: "..." }
           const errJson = (await res.json().catch(() => null)) as {
             detail?: string;
           } | null;
@@ -46,18 +47,37 @@ export default function App() {
     };
 
     run();
-  }, [selectedWeek]);
+  }, [selectedWeek, selectedSeason]);
+
+  const displayGames: GamePrediction[] = sortByConf
+    ? [...games].sort((a, b) => b.confidence - a.confidence)
+    : games;
 
   return (
     <div>
       <Header />
 
-      <SelectMenu value={selectedWeek} onChange={setSelectedWeek} />
+      <SelectMenu
+        value={selectedWeek}
+        onChange={setSelectedWeek}
+        season={selectedSeason}
+        onSeasonChange={setSelectedSeason}
+      />
 
-      {loading && <p className="text-light">Running predictions…</p>}
       {error && <p className="text-danger">{error}</p>}
 
-      <GameList games={games} />
+      {games.length > 0 && (
+        <div className="sort-toggle-container">
+          <button
+            className={`sort-toggle-btn${sortByConf ? " active" : ""}`}
+            onClick={() => setSortByConf((v) => !v)}
+          >
+            {sortByConf ? "Sorted by Confidence" : "Sort by Confidence"}
+          </button>
+        </div>
+      )}
+
+      <GameList games={displayGames} loading={loading} />
     </div>
   );
 }
