@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Header from "./components/Header";
 import SelectMenu from "./components/SelectMenu";
 import GameList from "./components/GameList";
-import "bootstrap/dist/css/bootstrap.min.css";
+import "./index.css";
 import type { GamePrediction, PredictionsResponse } from "./types.tsx";
 
 const API_BASE = "https://nfl-predictor-reactwebsite.onrender.com";
@@ -54,7 +54,7 @@ export default function App() {
     : games;
 
   return (
-    <div>
+    <div className="app-wrapper">
       <Header />
 
       <SelectMenu
@@ -64,15 +64,19 @@ export default function App() {
         onSeasonChange={setSelectedSeason}
       />
 
-      {error && <p className="text-danger">{error}</p>}
+      {error && <div className="error-banner">{error}</div>}
 
       {games.length > 0 && (
-        <div className="sort-toggle-container">
+        <div className="sort-control">
+          <span className="sort-label">Sort</span>
           <button
-            className={`sort-toggle-btn${sortByConf ? " active" : ""}`}
+            className={`sort-btn${sortByConf ? " active" : ""}`}
             onClick={() => setSortByConf((v) => !v)}
           >
-            {sortByConf ? "Sorted by Confidence" : "Sort by Confidence"}
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path d="M1 2h9M3 5.5h5M5 9h1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            By Confidence
           </button>
         </div>
       )}
