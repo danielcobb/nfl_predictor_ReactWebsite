@@ -9,7 +9,7 @@ const API_BASE = "https://nfl-predictor-reactwebsite.onrender.com";
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
-  const [selectedSeason, setSelectedSeason] = useState<number>(2025);
+  const [selectedSeason, setSelectedSeason] = useState<number>(2026);
   const [games, setGames] = useState<GamePrediction[]>([]);
   const [roundName, setRoundName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

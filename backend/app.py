@@ -29,7 +29,7 @@ PLAYOFF_ROUND_NAMES = {
 
 @app.get('/predictions')
 def get_predictions(week: int = Query(..., ge=1, le=22, description="NFL week (1-22; 19-22 are playoff rounds)"),
-                    season: int = Query(2025, description="NFL season year")):
+                    season: int = Query(2026, description="NFL season year")):
     """
     Return predictions for a selected NFL week or playoff round.
     Weeks 19-22 correspond to Wild Card, Divisional, Conference Championships, and Super Bowl.

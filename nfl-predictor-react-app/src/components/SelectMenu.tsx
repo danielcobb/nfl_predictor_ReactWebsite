@@ -1,4 +1,4 @@
-const SEASONS = [2022, 2023, 2024, 2025];
+const SEASONS = [2022, 2023, 2024, 2025, 2026];
 
 const PLAYOFF_ROUNDS = [
   { week: 19, label: "Wild Card" },

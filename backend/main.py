@@ -21,10 +21,22 @@ from sklearn.preprocessing import StandardScaler
 # -----------------------------
 
 def get_team_stats(seasons: list[int]) -> pd.DataFrame:
-    team_stats = nfl.load_team_stats(seasons, summary_level="week")
-    df = team_stats.to_pandas()
-    df = df.sort_values(["season", "team", "week"]).reset_index(drop=True)
-    return df
+    frames = []
+    for s in seasons:
+        try:
+            df = nfl.load_team_stats([s], summary_level="week").to_pandas()
+        except Exception:
+            # No stats published yet for this season (e.g. it hasn't started).
+            continue
+        if not df.empty:
+            frames.append(df)
+
+    if not frames:
+        return pd.DataFrame()
+
+    team_stats = pd.concat(frames, ignore_index=True)
+    team_stats = team_stats.sort_values(["season", "team", "week"]).reset_index(drop=True)
+    return team_stats
 
 
 def get_schedule(season: int) -> pd.DataFrame:
@@ -342,7 +354,7 @@ def _save_cached_bundle(season: int, week: int, bundle: dict) -> None:
     joblib.dump(bundle, _cache_path(season, week))
 
 
-def predict_week(week: int, season: int = 2025) -> list[dict]:
+def predict_week(week: int, season: int = 2026) -> list[dict]:
     seasons = [season - 2, season - 1, season]
     team_stats = get_team_stats(seasons)
 
@@ -397,9 +409,13 @@ def predict_week(week: int, season: int = 2025) -> list[dict]:
 # -----------------------------
 
 if __name__ == "__main__":
-    for i in range(1,23):
-        results = predict_week(i)
-        save_predictions("predictions.db", 2025, i, results, "V1")
+    season = 2026
+    for i in range(1, 23):
+        results = predict_week(i, season=season)
+        if not results:
+            print(f"{season} week {i}: no games/predictions available yet")
+            continue
+        save_predictions("predictions.db", season, i, results, "V1")
         print(results[0]["game_id"])
     """
     for g in results:
