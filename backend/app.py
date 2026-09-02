@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 PLAYOFF_ROUND_NAMES = {
     19: "Wild Card",
     20: "Divisional Round",
