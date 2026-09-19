@@ -12,7 +12,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Vite default
         "http://127.0.0.1:5173",
-        "https://danielcobb.github.io"
+        "https://danielcobb.github.io",
+        "https://nfl-predictor-react-website-htolen3zt-danielcobbs-projects.vercel.app/"
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
