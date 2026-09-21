@@ -5,7 +5,7 @@ import GameList from "./components/GameList";
 import "./index.css";
 import type { GamePrediction, PredictionsResponse } from "./types.tsx";
 
-const API_BASE = "https://nfl-predictor-reactwebsite.onrender.com";
+const API_BASE = "https://nfl-api.danielcobb.dev";
 
 export default function App() {
   const [selectedWeek, setSelectedWeek] = useState<number | null>(null);
@@ -25,7 +25,7 @@ export default function App() {
 
       try {
         const res = await fetch(
-          `${API_BASE}/predictions?week=${selectedWeek}&season=${selectedSeason}`
+          `${API_BASE}/predictions?week=${selectedWeek}&season=${selectedSeason}`,
         );
 
         if (!res.ok) {
@@ -42,7 +42,7 @@ export default function App() {
         setGames([]);
         setRoundName(null);
         setError(
-          e instanceof Error ? e.message : "Failed to load predictions."
+          e instanceof Error ? e.message : "Failed to load predictions.",
         );
       } finally {
         setLoading(false);
@@ -89,7 +89,12 @@ export default function App() {
             onClick={() => setSortByConf((v) => !v)}
           >
             <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-              <path d="M1 2h9M3 5.5h5M5 9h1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path
+                d="M1 2h9M3 5.5h5M5 9h1"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
             By Confidence
           </button>
