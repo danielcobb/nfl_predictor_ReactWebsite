@@ -1,38 +1,24 @@
-services:
-  backend:
-    build:
+services:                          # 0 spaces
+  backend:                         # 2 spaces
+    build:                         # 4 spaces
       context: .
       dockerfile: Dockerfile
     image: nfl-predictor-backend
     restart: unless-stopped
     ports:
       - "8000:8000"
-    volumes:
-      # --- predictions.db (SQLite, WAL mode) --------------------------------
-      # backend/app.py hardcodes DB_PATH next to app.py itself
-      # (Path(__file__).resolve().parent / "predictions.db"); it's not
-      # configurable via env var without a code change, so these container-side
-      # paths must stay exactly "/app/backend/predictions.db*".
-      #
-      # ONE-TIME SETUP: bind mounts do NOT get seeded from the image (only
-      # named volumes do), and the Dockerfile deliberately leaves
-      # predictions.db out of the image. Before the first `docker compose up`,
-      # create these files on the host yourself, otherwise Docker will create
-      # empty directories in their place instead of files:
-      #   mkdir -p data
-      #   cp backend/predictions.db data/predictions.db
-      #   touch data/predictions.db-wal data/predictions.db-shm
-      - ./data/predictions.db:/app/backend/predictions.db
-      - ./data/predictions.db-wal:/app/backend/predictions.db-wal
-      - ./data/predictions.db-shm:/app/backend/predictions.db-shm
-
-      # --- trained model artifacts (backend/main.py's joblib cache) --------
-      # This one is baked into the image (backend/model_cache/*.joblib is
-      # committed to the repo) and mounted as a named volume rather than a
-      # bind mount, so Docker seeds it from the image on first run, then keeps
-      # whatever's written/added after that (main.py both reads and writes
-      # here) across restarts and rebuilds.
+    volumes:                       # 4 spaces — backend's volume list
+      - /mnt/Storage/.../predictions.db:/app/backend/predictions.db
+      - /mnt/Storage/.../predictions.db-wal:/app/backend/predictions.db-wal
+      - /mnt/Storage/.../predictions.db-shm:/app/backend/predictions.db-shm
       - model_cache:/app/backend/model_cache
 
-volumes:
-  model_cache:
+  cloudflared:                     # 2 spaces — sibling of backend
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token YOUR_TUNNEL_TOKEN
+    depends_on:
+      - backend
+
+volumes:                           # 0 spaces — ROOT level, sibling of "services"
+  model_cache
