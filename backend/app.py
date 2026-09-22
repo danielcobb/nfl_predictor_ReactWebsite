@@ -1,8 +1,19 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from backend.main import load_predictions
+from backend.main import load_predictions, ensure_db
 
-app = FastAPI(title="NFL Game Predictor API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Guarantees the predictions table exists even if save_predictions()
+    # (which also calls this) hasn't run yet - otherwise the first request
+    # hits a raw "relation predictions does not exist" error.
+    ensure_db()
+    yield
+
+
+app = FastAPI(title="NFL Game Predictor API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
