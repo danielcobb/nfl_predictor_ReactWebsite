@@ -1,11 +1,8 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pathlib import Path
 from backend.main import load_predictions
 
 app = FastAPI(title="NFL Game Predictor API")
-
-DB_PATH = str(Path(__file__).resolve().parent / "predictions.db")
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,7 +33,7 @@ def get_predictions(week: int = Query(..., ge=1, le=22, description="NFL week (1
     Weeks 19-22 correspond to Wild Card, Divisional, Conference Championships, and Super Bowl.
     """
 
-    raw_predictions = load_predictions(DB_PATH, season=season, week=week)
+    raw_predictions = load_predictions(season=season, week=week)
     predictions = []
     for row in raw_predictions:
         home_prob = row.get("home_win_prob")

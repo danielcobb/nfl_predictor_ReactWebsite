@@ -18,11 +18,11 @@ WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# App code. backend/predictions.db is intentionally excluded via .dockerignore -
-# it's supplied at runtime via a bind-mounted volume instead (see docker-compose.yml)
-# so a rebuild never resets/overwrites real prediction data. backend/model_cache/*.joblib
-# IS copied in (it's committed, pre-trained model data) and then layered under a named
-# volume in compose so the cache still survives rebuilds once the app writes new entries.
+# App code. Predictions now live in Postgres (connection configured via env vars /
+# docker-compose.yml's env_file, see backend/db.py), so there's no sqlite file to
+# exclude here anymore. backend/model_cache/*.joblib IS copied in (it's committed,
+# pre-trained model data) and then layered under a named volume in compose so the
+# cache still survives rebuilds once the app writes new entries.
 COPY backend/ backend/
 
 RUN useradd --create-home --uid 1000 appuser \

@@ -6,5 +6,6 @@ scikit-learn
 nflreadpy
 pyarrow
 joblib
-psycopg2-binary 
+psycopg2-binary
 sqlalchemy
+python-dotenv

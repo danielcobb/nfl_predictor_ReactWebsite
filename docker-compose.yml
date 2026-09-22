@@ -7,10 +7,9 @@ services:                          # 0 spaces
     restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env                      # DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD (or DATABASE_URL) — see .env.example
     volumes:                       # 4 spaces — backend's volume list
-      - /mnt/Storage/.../predictions.db:/app/backend/predictions.db
-      - /mnt/Storage/.../predictions.db-wal:/app/backend/predictions.db-wal
-      - /mnt/Storage/.../predictions.db-shm:/app/backend/predictions.db-shm
       - model_cache:/app/backend/model_cache
 
   cloudflared:                     # 2 spaces — sibling of backend

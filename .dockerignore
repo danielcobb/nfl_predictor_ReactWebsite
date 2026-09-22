@@ -15,10 +15,9 @@ backend/.venv/
 .vscode/
 **/.DS_Store
 
-# SQLite database - deliberately NOT baked into the image; supplied via a
-# bind-mounted volume in docker-compose.yml instead so a rebuild never
-# resets real prediction data. (-wal/-shm are WAL-mode side files that
-# appear next to it at runtime - see backend/main.py's ensure_db().)
+# Legacy SQLite database - predictions now live in Postgres (see backend/db.py).
+# Excluded so it doesn't get baked into the image; kept in the repo only as the
+# source for the one-time migration (backend/migrate_to_postgres.py).
 backend/predictions.db
 backend/predictions.db-wal
 backend/predictions.db-shm

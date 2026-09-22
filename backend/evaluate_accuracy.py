@@ -7,10 +7,15 @@ Usage:
 """
 from __future__ import annotations
 import sys
-import sqlite3
-from main import get_schedule, load_predictions, ensure_db
 
-DB_PATH = "predictions.db"
+from sqlalchemy import text
+
+try:
+    from backend.main import get_schedule, load_predictions, ensure_db
+    from backend.db import engine
+except ImportError:
+    from main import get_schedule, load_predictions, ensure_db
+    from db import engine
 
 
 def get_actual_winners(season: int) -> dict[tuple[int, str, str], str]:
@@ -32,20 +37,22 @@ def get_actual_winners(season: int) -> dict[tuple[int, str, str], str]:
     return winners
 
 
-def backfill_actual_winners(db_path: str, season: int, winners: dict) -> int:
+def backfill_actual_winners(season: int, winners: dict) -> int:
     """Write actual_winner into prediction rows. Returns rows updated."""
-    ensure_db(db_path)
+    ensure_db()
     updated = 0
-    with sqlite3.connect(db_path) as conn:
+    sql = text("""
+        UPDATE predictions SET actual_winner = :winner
+        WHERE season = :season AND week = :week AND home_team = :home AND away_team = :away
+        AND (actual_winner IS NULL OR actual_winner != :winner)
+    """)
+    with engine.begin() as conn:
         for (week, home, away), winner in winners.items():
-            cur = conn.execute(
-                """UPDATE predictions SET actual_winner = ?
-                   WHERE season = ? AND week = ? AND home_team = ? AND away_team = ?
-                   AND (actual_winner IS NULL OR actual_winner != ?)""",
-                (winner, season, week, home, away, winner),
+            result = conn.execute(
+                sql,
+                {"winner": winner, "season": season, "week": week, "home": home, "away": away},
             )
-            updated += cur.rowcount
-        conn.commit()
+            updated += result.rowcount
     return updated
 
 
@@ -56,7 +63,7 @@ def evaluate(season: int, backfill: bool = False) -> None:
         return
 
     if backfill:
-        n = backfill_actual_winners(DB_PATH, season, winners)
+        n = backfill_actual_winners(season, winners)
         print(f"Backfilled {n} rows with actual_winner.\n")
 
     total, correct = 0, 0
@@ -66,7 +73,7 @@ def evaluate(season: int, backfill: bool = False) -> None:
     print("-" * 55)
 
     for week in range(1, 23):
-        preds = load_predictions(DB_PATH, season, week)
+        preds = load_predictions(season, week)
         if not preds:
             continue
         for p in preds:
